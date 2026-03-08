@@ -46,7 +46,12 @@ export default function RegisterScreen() {
         try {
             await register(name, email, password);
         } catch (error: any) {
-            Alert.alert('Erro', error.response?.data?.message || 'Não foi possível criar a conta.');
+            console.error('Register error:', JSON.stringify(error.response?.data), error.message, error.code);
+            const msg = error.response?.data?.message
+                || error.response?.data?.title
+                || error.message
+                || 'Não foi possível criar a conta.';
+            Alert.alert('Erro', `${msg}\n\nStatus: ${error.response?.status || 'sem resposta'}\nCode: ${error.code || 'N/A'}`);
         } finally {
             setLoading(false);
         }
