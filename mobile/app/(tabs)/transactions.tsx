@@ -16,6 +16,9 @@ interface Transaction {
     id: string;
     amount: number;
     type: number;
+    recurrenceType: number;
+    totalInstallments?: number;
+    currentInstallment?: number;
     description: string;
     date: string;
     categoryName: string;
@@ -31,7 +34,10 @@ export default function TransactionsScreen() {
 
     const loadTransactions = useCallback(async () => {
         try {
-            const response = await api.get('/transactions');
+            const now = new Date();
+            const startDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+            const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
+            const response = await api.get('/transactions', { params: { startDate, endDate } });
             setTransactions(response.data);
         } catch (error) {
             console.error('Error loading transactions:', error);

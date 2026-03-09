@@ -24,7 +24,8 @@ public class DashboardService : IDashboardService
 
         var totalIncome = await _transactionRepository.GetTotalByTypeAsync(userId, TransactionType.Income, startOfMonth, endOfMonth);
         var totalExpenses = await _transactionRepository.GetTotalByTypeAsync(userId, TransactionType.Expense, startOfMonth, endOfMonth);
-        var recentTransactions = await _transactionRepository.GetRecentByUserIdAsync(userId, 5);
+        var monthTransactions = await _transactionRepository.GetByUserIdAsync(userId, startOfMonth, endOfMonth);
+        var recentTransactions = monthTransactions.Take(10);
 
         return new DashboardDto
         {
@@ -36,6 +37,10 @@ public class DashboardService : IDashboardService
                 Id = t.Id,
                 Amount = t.Amount,
                 Type = t.Type,
+                RecurrenceType = t.RecurrenceType,
+                TotalInstallments = t.TotalInstallments,
+                CurrentInstallment = t.CurrentInstallment,
+                RecurrenceGroupId = t.RecurrenceGroupId,
                 Description = t.Description,
                 Date = t.Date,
                 CreatedAt = t.CreatedAt,
@@ -74,6 +79,10 @@ public class DashboardService : IDashboardService
                 Id = t.Id,
                 Amount = t.Amount,
                 Type = t.Type,
+                RecurrenceType = t.RecurrenceType,
+                TotalInstallments = t.TotalInstallments,
+                CurrentInstallment = t.CurrentInstallment,
+                RecurrenceGroupId = t.RecurrenceGroupId,
                 Description = t.Description,
                 Date = t.Date,
                 CreatedAt = t.CreatedAt,
