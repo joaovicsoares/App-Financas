@@ -9,10 +9,17 @@ namespace Financas.Application.Services;
 public class InvestmentService : IInvestmentService
 {
     private readonly IInvestmentRepository _investmentRepository;
+    private readonly ICategoryRepository _categoryRepository;
+    private readonly ITransactionRepository _transactionRepository;
 
-    public InvestmentService(IInvestmentRepository investmentRepository)
+    public InvestmentService(
+        IInvestmentRepository investmentRepository,
+        ICategoryRepository categoryRepository,
+        ITransactionRepository transactionRepository)
     {
         _investmentRepository = investmentRepository;
+        _categoryRepository = categoryRepository;
+        _transactionRepository = transactionRepository;
     }
 
     public async Task<IEnumerable<InvestmentResponseDto>> GetAllAsync(Guid userId)
@@ -58,6 +65,27 @@ public class InvestmentService : IInvestmentService
         };
 
         await _investmentRepository.CreateAsync(investment);
+
+        // Create expense transaction to deduct from balance
+        if (dto.DeductFromBalance)
+        {
+            var category = await GetOrCreateInvestmentCategoryAsync(userId);
+
+            var transaction = new Transaction
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                CategoryId = category.Id,
+                Amount = dto.AmountInvested,
+                Type = TransactionType.Expense,
+                Description = $"Investimento: {dto.Name}",
+                Date = dto.StartDate,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _transactionRepository.CreateAsync(transaction);
+        }
+
         return MapToDto(investment);
     }
 
@@ -110,6 +138,29 @@ public class InvestmentService : IInvestmentService
             throw new UnauthorizedAccessException("Sem permissão para excluir este investimento.");
 
         await _investmentRepository.DeleteAsync(id);
+    }
+
+    private async Task<Category> GetOrCreateInvestmentCategoryAsync(Guid userId)
+    {
+        var categories = await _categoryRepository.GetAllByUserIdAsync(userId);
+        var existing = categories.FirstOrDefault(c => c.Name == "Investimentos" && c.Type == TransactionType.Expense);
+
+        if (existing != null)
+            return existing;
+
+        var category = new Category
+        {
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            Name = "Investimentos",
+            Icon = "chart-line",
+            Color = "#6C5CE7",
+            Type = TransactionType.Expense,
+            IsDefault = false
+        };
+
+        await _categoryRepository.CreateAsync(category);
+        return category;
     }
 
     private static decimal CalculateCurrentValue(Investment investment)

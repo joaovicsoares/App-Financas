@@ -8,6 +8,7 @@ import {
     ScrollView,
     Alert,
     ActivityIndicator,
+    Switch,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Colors } from '@/constants';
@@ -30,6 +31,7 @@ export default function NewInvestmentScreen() {
     const [amount, setAmount] = useState('');
     const [rate, setRate] = useState('');
     const [notes, setNotes] = useState('');
+    const [deductFromBalance, setDeductFromBalance] = useState(true);
     const [loading, setLoading] = useState(false);
 
     async function handleSave() {
@@ -60,6 +62,7 @@ export default function NewInvestmentScreen() {
                 annualRate: parsedRate,
                 startDate: new Date().toISOString(),
                 notes,
+                deductFromBalance,
             });
             router.back();
         } catch (error: any) {
@@ -165,6 +168,20 @@ export default function NewInvestmentScreen() {
                     />
                 </View>
 
+                {/* Deduct from Balance */}
+                <View style={styles.toggleRow}>
+                    <View style={{ flex: 1 }}>
+                        <Text style={styles.toggleLabel}>Descontar do saldo</Text>
+                        <Text style={styles.toggleHint}>Criar despesa automática no seu orçamento</Text>
+                    </View>
+                    <Switch
+                        value={deductFromBalance}
+                        onValueChange={setDeductFromBalance}
+                        trackColor={{ false: Colors.border, true: Colors.primary + '80' }}
+                        thumbColor={deductFromBalance ? Colors.primary : Colors.textMuted}
+                    />
+                </View>
+
                 {/* Save Button */}
                 <TouchableOpacity
                     style={[styles.saveBtn, loading && { opacity: 0.7 }]}
@@ -244,6 +261,18 @@ const styles = StyleSheet.create({
     currencySign: { fontSize: 24, fontWeight: '600', color: Colors.textSecondary, marginRight: 8 },
     amountInput: { fontSize: 42, fontWeight: '700', color: Colors.income, minWidth: 100, textAlign: 'center' },
     rateHint: { fontSize: 14, color: Colors.textMuted, marginLeft: 8 },
+    toggleRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: Colors.surface,
+        borderRadius: 14,
+        padding: 16,
+        marginBottom: 24,
+        borderWidth: 1,
+        borderColor: Colors.border,
+    },
+    toggleLabel: { fontSize: 15, fontWeight: '500', color: Colors.text },
+    toggleHint: { fontSize: 12, color: Colors.textMuted, marginTop: 2 },
     saveBtn: {
         backgroundColor: Colors.primary,
         height: 54,

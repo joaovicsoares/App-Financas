@@ -27,6 +27,8 @@ public class CreateInvestmentDto
 
     [MaxLength(500)]
     public string Notes { get; set; } = string.Empty;
+
+    public bool DeductFromBalance { get; set; } = false;
 }
 
 public class UpdateInvestmentDto
