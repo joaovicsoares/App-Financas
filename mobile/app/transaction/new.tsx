@@ -9,7 +9,7 @@ import {
     Alert,
     ActivityIndicator,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Colors } from '@/constants';
 import api from '@/services/api';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -24,6 +24,7 @@ interface Category {
 
 export default function NewTransactionScreen() {
     const router = useRouter();
+    const { walletId, walletName } = useLocalSearchParams<{ walletId?: string; walletName?: string }>();
     const [type, setType] = useState<0 | 1>(1); // 0=income, 1=expense
     const [amount, setAmount] = useState('');
     const [description, setDescription] = useState('');
@@ -62,6 +63,7 @@ export default function NewTransactionScreen() {
         try {
             await api.post('/transactions', {
                 categoryId: selectedCategory,
+                sharedWalletId: walletId || undefined,
                 amount: parsedAmount,
                 type,
                 description,
@@ -85,6 +87,13 @@ export default function NewTransactionScreen() {
                 <Text style={styles.headerTitle}>Nova Transação</Text>
                 <View style={{ width: 28 }} />
             </View>
+
+            {walletId && (
+                <View style={styles.walletBadge}>
+                    <MaterialCommunityIcons name="wallet-outline" size={18} color={Colors.primary} />
+                    <Text style={styles.walletBadgeText}>Carteira: {walletName || 'Compartilhada'}</Text>
+                </View>
+            )}
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
                 {/* Type Selector */}
@@ -171,6 +180,20 @@ export default function NewTransactionScreen() {
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: Colors.background },
+    walletBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        marginHorizontal: 24,
+        marginBottom: 8,
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        borderRadius: 12,
+        backgroundColor: Colors.primary + '15',
+        borderWidth: 1,
+        borderColor: Colors.primary + '30',
+    },
+    walletBadgeText: { fontSize: 14, color: Colors.primary, fontWeight: '500' },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',

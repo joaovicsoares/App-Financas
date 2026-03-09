@@ -9,7 +9,7 @@ import {
     Alert,
     TextInput,
 } from 'react-native';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { Colors } from '@/constants';
 import api from '@/services/api';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -30,6 +30,7 @@ interface WalletMember {
 }
 
 export default function WalletScreen() {
+    const router = useRouter();
     const [wallets, setWallets] = useState<SharedWallet[]>([]);
     const [refreshing, setRefreshing] = useState(false);
     const [showCreate, setShowCreate] = useState(false);
@@ -143,7 +144,11 @@ export default function WalletScreen() {
                     </View>
                 }
                 renderItem={({ item }) => (
-                    <View style={styles.walletCard}>
+                    <TouchableOpacity
+                        style={styles.walletCard}
+                        onPress={() => router.push(`/wallet/${item.id}` as any)}
+                        activeOpacity={0.7}
+                    >
                         <View style={styles.walletHeader}>
                             <View style={styles.walletIconBox}>
                                 <MaterialCommunityIcons name="wallet-outline" size={24} color={Colors.primary} />
@@ -152,7 +157,10 @@ export default function WalletScreen() {
                                 <Text style={styles.walletName}>{item.name}</Text>
                                 <Text style={styles.walletMembers}>{item.members.length} membro(s)</Text>
                             </View>
-                            <TouchableOpacity onPress={() => handleDelete(item.id)}>
+                            <TouchableOpacity
+                                onPress={(e) => { e.stopPropagation(); handleDelete(item.id); }}
+                                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                            >
                                 <MaterialCommunityIcons name="delete-outline" size={22} color={Colors.expense} />
                             </TouchableOpacity>
                         </View>
@@ -168,32 +176,12 @@ export default function WalletScreen() {
                             </View>
                         ))}
 
-                        {/* Invite */}
-                        {selectedWallet === item.id ? (
-                            <View style={styles.inviteBox}>
-                                <TextInput
-                                    style={styles.inviteInput}
-                                    placeholder="Email do membro"
-                                    placeholderTextColor={Colors.textMuted}
-                                    value={inviteEmail}
-                                    onChangeText={setInviteEmail}
-                                    autoCapitalize="none"
-                                    keyboardType="email-address"
-                                />
-                                <TouchableOpacity style={styles.inviteBtn} onPress={() => handleInvite(item.id)}>
-                                    <MaterialCommunityIcons name="send" size={20} color={Colors.white} />
-                                </TouchableOpacity>
-                            </View>
-                        ) : (
-                            <TouchableOpacity
-                                style={styles.inviteLink}
-                                onPress={() => setSelectedWallet(item.id)}
-                            >
-                                <MaterialCommunityIcons name="account-plus" size={18} color={Colors.primary} />
-                                <Text style={styles.inviteLinkText}>Convidar membro</Text>
-                            </TouchableOpacity>
-                        )}
-                    </View>
+                        {/* Open details hint */}
+                        <View style={styles.openDetailsHint}>
+                            <MaterialCommunityIcons name="arrow-right-circle-outline" size={18} color={Colors.primary} />
+                            <Text style={styles.openDetailsText}>Ver detalhes e transações</Text>
+                        </View>
+                    </TouchableOpacity>
                 )}
             />
         </View>
@@ -304,6 +292,16 @@ const styles = StyleSheet.create({
         borderTopColor: Colors.border,
     },
     inviteLinkText: { fontSize: 14, color: Colors.primary, fontWeight: '500' },
+    openDetailsHint: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        marginTop: 14,
+        paddingTop: 14,
+        borderTopWidth: 1,
+        borderTopColor: Colors.border,
+    },
+    openDetailsText: { fontSize: 14, color: Colors.primary, fontWeight: '500' },
     emptyState: { alignItems: 'center', paddingVertical: 60 },
     emptyText: { fontSize: 16, color: Colors.textSecondary, marginTop: 12 },
     emptySubtext: { fontSize: 13, color: Colors.textMuted, marginTop: 4 },
