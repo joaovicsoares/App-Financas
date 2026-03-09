@@ -9,3 +9,4 @@ D:\Projetos\local\App Finanças\backend\src\Financas.Domain\obj\Debug\net10.0\Fi
 D:\Projetos\local\App Finanças\backend\src\Financas.Domain\obj\Debug\net10.0\refint\Financas.Domain.dll
 D:\Projetos\local\App Finanças\backend\src\Financas.Domain\obj\Debug\net10.0\Financas.Domain.pdb
 D:\Projetos\local\App Finanças\backend\src\Financas.Domain\obj\Debug\net10.0\ref\Financas.Domain.dll
+D:\Projetos\local\App Finanças\backend\src\Financas.Domain\obj\Debug\net10.0\Financas.Domain.sourcelink.json

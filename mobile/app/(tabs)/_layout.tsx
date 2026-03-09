@@ -51,6 +51,15 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="investments"
+        options={{
+          title: 'Investimentos',
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name="chart-line" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="profile"
         options={{
           title: 'Perfil',

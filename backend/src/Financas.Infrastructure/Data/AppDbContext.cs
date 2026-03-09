@@ -12,6 +12,7 @@ public class AppDbContext : DbContext
     public DbSet<Transaction> Transactions => Set<Transaction>();
     public DbSet<SharedWallet> SharedWallets => Set<SharedWallet>();
     public DbSet<SharedWalletMember> SharedWalletMembers => Set<SharedWalletMember>();
+    public DbSet<Investment> Investments => Set<Investment>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -88,6 +89,24 @@ public class AppDbContext : DbContext
                 .WithMany(u => u.SharedWalletMemberships)
                 .HasForeignKey(m => m.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Investment
+        modelBuilder.Entity<Investment>(entity =>
+        {
+            entity.HasKey(i => i.Id);
+            entity.Property(i => i.Name).IsRequired().HasMaxLength(100);
+            entity.Property(i => i.AmountInvested).HasPrecision(18, 2);
+            entity.Property(i => i.AnnualRate).HasPrecision(10, 6);
+            entity.Property(i => i.RedeemedAmount).HasPrecision(18, 2);
+            entity.Property(i => i.Notes).HasMaxLength(500);
+
+            entity.HasOne(i => i.User)
+                .WithMany(u => u.Investments)
+                .HasForeignKey(i => i.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(i => i.UserId);
         });
     }
 }

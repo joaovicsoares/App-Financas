@@ -11,4 +11,5 @@ public class User
     public ICollection<Category> Categories { get; set; } = [];
     public ICollection<Transaction> Transactions { get; set; } = [];
     public ICollection<SharedWalletMember> SharedWalletMemberships { get; set; } = [];
+    public ICollection<Investment> Investments { get; set; } = [];
 }

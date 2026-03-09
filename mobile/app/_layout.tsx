@@ -38,6 +38,8 @@ function RootLayoutNav() {
         <Stack.Screen name="transaction/new" options={{ presentation: 'modal', headerShown: false }} />
         <Stack.Screen name="transaction/[id]" options={{ presentation: 'modal', headerShown: false }} />
         <Stack.Screen name="wallet/[id]" options={{ headerShown: false }} />
+        <Stack.Screen name="investment/new" options={{ presentation: 'modal', headerShown: false }} />
+        <Stack.Screen name="investment/[id]" options={{ headerShown: false }} />
       </Stack>
       <StatusBar style="light" />
     </>
