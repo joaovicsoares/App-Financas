@@ -65,6 +65,7 @@ public class AppDbContext : DbContext
                 .OnDelete(DeleteBehavior.SetNull);
 
             entity.HasIndex(t => new { t.UserId, t.Date });
+            entity.HasIndex(t => t.RecurrenceGroupId);
         });
 
         // SharedWallet

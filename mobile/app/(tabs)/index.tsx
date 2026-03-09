@@ -24,6 +24,9 @@ interface Transaction {
   id: string;
   amount: number;
   type: number;
+  recurrenceType: number;
+  totalInstallments?: number;
+  currentInstallment?: number;
   description: string;
   date: string;
   categoryName: string;
@@ -129,7 +132,19 @@ export default function DashboardScreen() {
                 </View>
                 <View style={styles.transactionInfo}>
                   <Text style={styles.transactionName}>{t.description || t.categoryName}</Text>
-                  <Text style={styles.transactionCategory}>{t.categoryName}</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <Text style={styles.transactionCategory}>{t.categoryName}</Text>
+                    {t.recurrenceType === 1 && (
+                      <View style={{ backgroundColor: Colors.primary + '20', paddingHorizontal: 6, paddingVertical: 1, borderRadius: 4 }}>
+                        <Text style={{ fontSize: 9, color: Colors.primary, fontWeight: '600' }}>FIXA</Text>
+                      </View>
+                    )}
+                    {t.recurrenceType === 2 && t.currentInstallment && t.totalInstallments && (
+                      <View style={{ backgroundColor: Colors.expense + '20', paddingHorizontal: 6, paddingVertical: 1, borderRadius: 4 }}>
+                        <Text style={{ fontSize: 9, color: Colors.expense, fontWeight: '600' }}>{t.currentInstallment}/{t.totalInstallments}</Text>
+                      </View>
+                    )}
+                  </View>
                 </View>
                 <Text
                   style={[

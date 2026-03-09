@@ -89,4 +89,22 @@ public class TransactionsController : ControllerBase
             return Forbid(ex.Message);
         }
     }
+
+    [HttpPost("{groupId}/renew")]
+    public async Task<ActionResult<TransactionResponseDto>> Renew(Guid groupId)
+    {
+        try
+        {
+            var result = await _transactionService.RenewRecurrenceAsync(GetUserId(), groupId);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Forbid(ex.Message);
+        }
+    }
 }

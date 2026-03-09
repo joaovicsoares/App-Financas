@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     View,
     Text,
@@ -22,6 +22,12 @@ interface Category {
     type: number;
 }
 
+const EXPENSE_MODES = [
+    { value: 0, label: 'Única', icon: 'numeric-1-circle', desc: 'Apenas uma vez' },
+    { value: 1, label: 'Fixa', icon: 'repeat', desc: 'Todo mês por 12 meses' },
+    { value: 2, label: 'Parcelada', icon: 'credit-card-clock', desc: 'Dividido em parcelas' },
+];
+
 export default function NewTransactionScreen() {
     const router = useRouter();
     const { walletId, walletName } = useLocalSearchParams<{ walletId?: string; walletName?: string }>();
@@ -30,6 +36,8 @@ export default function NewTransactionScreen() {
     const [description, setDescription] = useState('');
     const [categories, setCategories] = useState<Category[]>([]);
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+    const [recurrenceType, setRecurrenceType] = useState(0); // 0=Unica, 1=Fixa, 2=Parcelada
+    const [installments, setInstallments] = useState('');
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
@@ -59,6 +67,14 @@ export default function NewTransactionScreen() {
             return;
         }
 
+        if (recurrenceType === 2) {
+            const parsedInstallments = parseInt(installments);
+            if (isNaN(parsedInstallments) || parsedInstallments < 2) {
+                Alert.alert('Erro', 'Informe pelo menos 2 parcelas.');
+                return;
+            }
+        }
+
         setLoading(true);
         try {
             await api.post('/transactions', {
@@ -66,6 +82,8 @@ export default function NewTransactionScreen() {
                 sharedWalletId: walletId || undefined,
                 amount: parsedAmount,
                 type,
+                recurrenceType: type === 1 ? recurrenceType : 0,
+                totalInstallments: recurrenceType === 2 ? parseInt(installments) : undefined,
                 description,
                 date: new Date().toISOString(),
             });
@@ -107,12 +125,65 @@ export default function NewTransactionScreen() {
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={[styles.typeBtn, type === 0 && styles.typeBtnIncome]}
-                        onPress={() => { setType(0); setSelectedCategory(null); }}
+                        onPress={() => { setType(0); setSelectedCategory(null); setRecurrenceType(0); }}
                     >
                         <MaterialCommunityIcons name="arrow-up" size={20} color={type === 0 ? Colors.white : Colors.income} />
                         <Text style={[styles.typeText, type === 0 && styles.typeTextActive]}>Receita</Text>
                     </TouchableOpacity>
                 </View>
+
+                {/* Expense Mode Selector - only for expenses */}
+                {type === 1 && (
+                    <>
+                        <Text style={styles.sectionTitle}>Tipo de despesa</Text>
+                        <View style={styles.modeSelector}>
+                            {EXPENSE_MODES.map((mode) => (
+                                <TouchableOpacity
+                                    key={mode.value}
+                                    style={[
+                                        styles.modeItem,
+                                        recurrenceType === mode.value && styles.modeItemActive,
+                                    ]}
+                                    onPress={() => setRecurrenceType(mode.value)}
+                                >
+                                    <MaterialCommunityIcons
+                                        name={mode.icon as any}
+                                        size={22}
+                                        color={recurrenceType === mode.value ? Colors.white : Colors.primary}
+                                    />
+                                    <Text style={[
+                                        styles.modeLabel,
+                                        recurrenceType === mode.value && styles.modeLabelActive,
+                                    ]}>
+                                        {mode.label}
+                                    </Text>
+                                    <Text style={[
+                                        styles.modeDesc,
+                                        recurrenceType === mode.value && styles.modeDescActive,
+                                    ]}>
+                                        {mode.desc}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+
+                        {/* Installments Input */}
+                        {recurrenceType === 2 && (
+                            <View style={styles.installmentsContainer}>
+                                <MaterialCommunityIcons name="counter" size={20} color={Colors.textMuted} style={{ marginRight: 12 }} />
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Número de parcelas"
+                                    placeholderTextColor={Colors.textMuted}
+                                    value={installments}
+                                    onChangeText={setInstallments}
+                                    keyboardType="number-pad"
+                                />
+                                <Text style={styles.installmentsHint}>parcelas</Text>
+                            </View>
+                        )}
+                    </>
+                )}
 
                 {/* Amount */}
                 <View style={styles.amountContainer}>
@@ -126,6 +197,15 @@ export default function NewTransactionScreen() {
                         keyboardType="decimal-pad"
                     />
                 </View>
+
+                {/* Installment preview */}
+                {recurrenceType === 2 && installments && amount && (
+                    <View style={styles.installmentPreview}>
+                        <Text style={styles.installmentPreviewText}>
+                            {installments}x de R$ {(parseFloat(amount.replace(',', '.')) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </Text>
+                    </View>
+                )}
 
                 {/* Description */}
                 <View style={styles.inputContainer}>
@@ -170,7 +250,11 @@ export default function NewTransactionScreen() {
                     {loading ? (
                         <ActivityIndicator color={Colors.white} />
                     ) : (
-                        <Text style={styles.saveBtnText}>Salvar Transação</Text>
+                        <Text style={styles.saveBtnText}>
+                            {recurrenceType === 1 ? 'Salvar Despesa Fixa (12 meses)' :
+                                recurrenceType === 2 ? `Salvar ${installments || '?'} Parcelas` :
+                                    'Salvar Transação'}
+                        </Text>
                     )}
                 </TouchableOpacity>
             </ScrollView>
@@ -207,7 +291,7 @@ const styles = StyleSheet.create({
     typeSelector: {
         flexDirection: 'row',
         gap: 12,
-        marginBottom: 32,
+        marginBottom: 24,
     },
     typeBtn: {
         flex: 1,
@@ -225,6 +309,62 @@ const styles = StyleSheet.create({
     typeBtnIncome: { backgroundColor: Colors.income, borderColor: Colors.income },
     typeText: { fontSize: 15, fontWeight: '600', color: Colors.textSecondary },
     typeTextActive: { color: Colors.white },
+
+    // Expense Mode
+    sectionTitle: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: Colors.text,
+        marginBottom: 14,
+    },
+    modeSelector: {
+        flexDirection: 'row',
+        gap: 10,
+        marginBottom: 24,
+    },
+    modeItem: {
+        flex: 1,
+        alignItems: 'center',
+        backgroundColor: Colors.surface,
+        borderRadius: 14,
+        padding: 14,
+        borderWidth: 1,
+        borderColor: Colors.border,
+        gap: 4,
+    },
+    modeItemActive: {
+        backgroundColor: Colors.primary,
+        borderColor: Colors.primary,
+    },
+    modeLabel: { fontSize: 13, fontWeight: '600', color: Colors.text },
+    modeLabelActive: { color: Colors.white },
+    modeDesc: { fontSize: 9, color: Colors.textMuted, textAlign: 'center' },
+    modeDescActive: { color: Colors.white + 'CC' },
+
+    // Installments
+    installmentsContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: Colors.inputBg,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: Colors.border,
+        paddingHorizontal: 16,
+        height: 54,
+        marginBottom: 24,
+    },
+    installmentsHint: { fontSize: 14, color: Colors.textMuted, marginLeft: 8 },
+    installmentPreview: {
+        alignItems: 'center',
+        marginBottom: 16,
+    },
+    installmentPreviewText: {
+        fontSize: 14,
+        color: Colors.textSecondary,
+        fontWeight: '500',
+    },
+
+    // Amount
     amountContainer: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -245,12 +385,6 @@ const styles = StyleSheet.create({
         marginBottom: 24,
     },
     input: { flex: 1, color: Colors.text, fontSize: 16 },
-    sectionTitle: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: Colors.text,
-        marginBottom: 14,
-    },
     categoriesGrid: {
         flexDirection: 'row',
         flexWrap: 'wrap',

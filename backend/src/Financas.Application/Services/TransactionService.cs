@@ -1,6 +1,7 @@
 using Financas.Application.DTOs;
 using Financas.Application.Interfaces;
 using Financas.Domain.Entities;
+using Financas.Domain.Enums;
 using Financas.Domain.Interfaces;
 
 namespace Financas.Application.Services;
@@ -39,22 +40,101 @@ public class TransactionService : ITransactionService
                 throw new UnauthorizedAccessException("Você não é membro desta carteira.");
         }
 
-        var transaction = new Transaction
+        var groupId = (dto.RecurrenceType != RecurrenceType.Unica) ? Guid.NewGuid() : (Guid?)null;
+
+        int count = dto.RecurrenceType switch
         {
-            Id = Guid.NewGuid(),
-            UserId = userId,
-            CategoryId = dto.CategoryId,
-            SharedWalletId = dto.SharedWalletId,
-            Amount = dto.Amount,
-            Type = dto.Type,
-            Description = dto.Description,
-            Date = dto.Date,
-            CreatedAt = DateTime.UtcNow
+            RecurrenceType.Fixa => 12,
+            RecurrenceType.Parcelada => dto.TotalInstallments ?? throw new ArgumentException("Informe a quantidade de parcelas."),
+            _ => 1
         };
 
-        await _transactionRepository.CreateAsync(transaction);
+        Transaction? first = null;
 
-        var created = await _transactionRepository.GetByIdAsync(transaction.Id);
+        for (int i = 0; i < count; i++)
+        {
+            var desc = dto.RecurrenceType switch
+            {
+                RecurrenceType.Parcelada => $"{dto.Description} ({i + 1}/{count})",
+                RecurrenceType.Fixa => dto.Description,
+                _ => dto.Description
+            };
+
+            var transaction = new Transaction
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                CategoryId = dto.CategoryId,
+                SharedWalletId = dto.SharedWalletId,
+                Amount = dto.Amount,
+                Type = dto.Type,
+                RecurrenceType = dto.RecurrenceType,
+                TotalInstallments = count > 1 ? count : null,
+                CurrentInstallment = count > 1 ? i + 1 : null,
+                RecurrenceGroupId = groupId,
+                Description = desc,
+                Date = dto.Date.AddMonths(i),
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _transactionRepository.CreateAsync(transaction);
+            first ??= transaction;
+        }
+
+        var created = await _transactionRepository.GetByIdAsync(first!.Id);
+        return MapToDto(created!);
+    }
+
+    public async Task<TransactionResponseDto> RenewRecurrenceAsync(Guid userId, Guid groupId)
+    {
+        var allTransactions = await _transactionRepository.GetByUserIdAsync(userId);
+        var group = allTransactions
+            .Where(t => t.RecurrenceGroupId == groupId && t.RecurrenceType == RecurrenceType.Fixa)
+            .OrderByDescending(t => t.Date)
+            .ToList();
+
+        if (group.Count == 0)
+            throw new KeyNotFoundException("Grupo de recorrência não encontrado.");
+
+        var template = group.First();
+        if (template.UserId != userId)
+            throw new UnauthorizedAccessException("Sem permissão.");
+
+        var lastDate = template.Date;
+        var existingMax = group.Max(t => t.CurrentInstallment ?? 0);
+        Transaction? first = null;
+
+        for (int i = 1; i <= 12; i++)
+        {
+            var transaction = new Transaction
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                CategoryId = template.CategoryId,
+                SharedWalletId = template.SharedWalletId,
+                Amount = template.Amount,
+                Type = template.Type,
+                RecurrenceType = RecurrenceType.Fixa,
+                TotalInstallments = existingMax + 12,
+                CurrentInstallment = existingMax + i,
+                RecurrenceGroupId = groupId,
+                Description = template.Description,
+                Date = lastDate.AddMonths(i),
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _transactionRepository.CreateAsync(transaction);
+            first ??= transaction;
+        }
+
+        // Update TotalInstallments on existing group members
+        foreach (var t in group)
+        {
+            t.TotalInstallments = existingMax + 12;
+            await _transactionRepository.UpdateAsync(t);
+        }
+
+        var created = await _transactionRepository.GetByIdAsync(first!.Id);
         return MapToDto(created!);
     }
 
@@ -94,6 +174,10 @@ public class TransactionService : ITransactionService
         Id = t.Id,
         Amount = t.Amount,
         Type = t.Type,
+        RecurrenceType = t.RecurrenceType,
+        TotalInstallments = t.TotalInstallments,
+        CurrentInstallment = t.CurrentInstallment,
+        RecurrenceGroupId = t.RecurrenceGroupId,
         Description = t.Description,
         Date = t.Date,
         CreatedAt = t.CreatedAt,

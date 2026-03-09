@@ -17,6 +17,11 @@ public class CreateTransactionDto
     [Required]
     public TransactionType Type { get; set; }
 
+    public RecurrenceType RecurrenceType { get; set; } = RecurrenceType.Unica;
+
+    [Range(2, 120)]
+    public int? TotalInstallments { get; set; }
+
     [MaxLength(200)]
     public string Description { get; set; } = string.Empty;
 
@@ -48,6 +53,10 @@ public class TransactionResponseDto
     public Guid Id { get; set; }
     public decimal Amount { get; set; }
     public TransactionType Type { get; set; }
+    public RecurrenceType RecurrenceType { get; set; }
+    public int? TotalInstallments { get; set; }
+    public int? CurrentInstallment { get; set; }
+    public Guid? RecurrenceGroupId { get; set; }
     public string Description { get; set; } = string.Empty;
     public DateTime Date { get; set; }
     public DateTime CreatedAt { get; set; }
