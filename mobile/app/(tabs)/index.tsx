@@ -134,9 +134,9 @@ export default function DashboardScreen() {
                   <Text style={styles.transactionName}>{t.description || t.categoryName}</Text>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                     <Text style={styles.transactionCategory}>{t.categoryName}</Text>
-                    {t.recurrenceType === 1 && (
+                    {t.recurrenceType === 1 && t.currentInstallment && t.totalInstallments && (
                       <View style={{ backgroundColor: Colors.primary + '20', paddingHorizontal: 6, paddingVertical: 1, borderRadius: 4 }}>
-                        <Text style={{ fontSize: 9, color: Colors.primary, fontWeight: '600' }}>FIXA</Text>
+                        <Text style={{ fontSize: 9, color: Colors.primary, fontWeight: '600' }}>FIXA {t.currentInstallment}/{t.totalInstallments}</Text>
                       </View>
                     )}
                     {t.recurrenceType === 2 && t.currentInstallment && t.totalInstallments && (

@@ -122,9 +122,21 @@ export default function TransactionsScreen() {
                         </View>
                         <View style={styles.info}>
                             <Text style={styles.cardName}>{item.description || item.categoryName}</Text>
-                            <Text style={styles.cardCategory}>
-                                {item.categoryName} • {formatDate(item.date)}
-                            </Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                <Text style={styles.cardCategory}>
+                                    {item.categoryName} • {formatDate(item.date)}
+                                </Text>
+                                {item.recurrenceType === 1 && item.currentInstallment && item.totalInstallments && (
+                                    <View style={{ backgroundColor: Colors.primary + '20', paddingHorizontal: 6, paddingVertical: 1, borderRadius: 4 }}>
+                                        <Text style={{ fontSize: 9, color: Colors.primary, fontWeight: '600' }}>FIXA {item.currentInstallment}/{item.totalInstallments}</Text>
+                                    </View>
+                                )}
+                                {item.recurrenceType === 2 && item.currentInstallment && item.totalInstallments && (
+                                    <View style={{ backgroundColor: Colors.expense + '20', paddingHorizontal: 6, paddingVertical: 1, borderRadius: 4 }}>
+                                        <Text style={{ fontSize: 9, color: Colors.expense, fontWeight: '600' }}>{item.currentInstallment}/{item.totalInstallments}</Text>
+                                    </View>
+                                )}
+                            </View>
                         </View>
                         <Text
                             style={[styles.cardAmount, { color: item.type === 0 ? Colors.income : Colors.expense }]}
