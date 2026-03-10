@@ -4,6 +4,8 @@ import { useEffect } from 'react';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { Colors } from '@/constants';
 import { ActivityIndicator, View } from 'react-native';
+import { getDB } from '@/services/database';
+import { startAutoSync } from '@/services/sync/syncEngine';
 
 function RootLayoutNav() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -19,6 +21,12 @@ function RootLayoutNav() {
       router.replace('/(auth)/login');
     } else if (isAuthenticated && inAuthGroup) {
       router.replace('/(tabs)');
+    }
+
+    // Initialize DB and sync when authenticated
+    if (isAuthenticated) {
+      getDB(); // ensures schema is created
+      startAutoSync();
     }
   }, [isAuthenticated, isLoading, segments]);
 
