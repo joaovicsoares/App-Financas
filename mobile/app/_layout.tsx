@@ -6,9 +6,11 @@ import { Colors } from '@/constants';
 import { ActivityIndicator, View } from 'react-native';
 import { getDB } from '@/services/database';
 import { startAutoSync } from '@/services/sync/syncEngine';
+import { VersionService } from '@/services/versionService';
+import { Alert } from 'react-native';
 
 function RootLayoutNav() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
   const segments = useSegments();
   const router = useRouter();
 
@@ -26,9 +28,29 @@ function RootLayoutNav() {
     // Initialize DB and sync when authenticated
     if (isAuthenticated) {
       getDB(); // ensures schema is created
-      startAutoSync();
+      if (user?.userId) {
+        startAutoSync(user.userId);
+      }
+      checkAppVersion();
     }
   }, [isAuthenticated, isLoading, segments]);
+
+  async function checkAppVersion() {
+    const update = await VersionService.checkUpdate();
+    if (update) {
+      Alert.alert(
+        'Nova Versão Disponível',
+        `Uma nova versão (${update.latestVersion}) está disponível. Deseja atualizar agora?`,
+        [
+          { text: 'Depois', style: 'cancel' },
+          {
+            text: 'Atualizar',
+            onPress: () => VersionService.downloadAndInstall(update.downloadUrl),
+          },
+        ]
+      );
+    }
+  }
 
   if (isLoading) {
     return (
