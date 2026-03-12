@@ -20,7 +20,8 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.appfinancas.mobile"
+      "package": "com.appfinancas.mobile",
+      "usesCleartextTraffic": true
     },
     "web": {
       "output": "static",

@@ -14,4 +14,4 @@ export const Colors = {
   white: '#FFFFFF',
 };
 
-export const API_URL = 'http://10.127.96.126:5000/api'; // IP da sua máquina na rede WiFi
+export const API_URL = 'https://linuxjoao.tail7796c7.ts.net/api'; // url na vpn
