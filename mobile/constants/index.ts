@@ -14,4 +14,4 @@ export const Colors = {
   white: '#FFFFFF',
 };
 
-export const API_URL = 'http://100.85.10.62:5000/api'; // IP da sua máquina na rede WiFi
+export const API_URL = 'http://10.127.96.126:5000/api'; // IP da sua máquina na rede WiFi

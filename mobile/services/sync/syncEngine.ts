@@ -67,14 +67,14 @@ async function pushChanges(): Promise<boolean> {
 }
 
 /** Pull server changes to local DB */
-async function pullChanges(): Promise<boolean> {
+async function pullChanges(userId: string): Promise<boolean> {
     try {
         // Pull categories
         const categoriesRes = await api.get('/categories');
         for (const c of categoriesRes.data) {
             CategoryRepository.upsert({
                 id: c.id,
-                userId: c.userId,
+                userId: c.userId ?? userId,
                 name: c.name,
                 icon: c.icon,
                 color: c.color,
@@ -89,6 +89,7 @@ async function pullChanges(): Promise<boolean> {
         const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
         const transactionsRes = await api.get('/transactions', { params: { startDate, endDate } });
         for (const t of transactionsRes.data) {
+            t.userId = t.userId ?? userId;
             TransactionRepository.upsertFromServer(t);
         }
 
@@ -97,7 +98,7 @@ async function pullChanges(): Promise<boolean> {
         for (const inv of investmentsRes.data) {
             InvestmentRepository.upsertFromServer({
                 id: inv.id,
-                userId: inv.userId ?? '',
+                userId: inv.userId ?? userId,
                 name: inv.name,
                 type: inv.type,
                 status: inv.status,
@@ -121,7 +122,7 @@ async function pullChanges(): Promise<boolean> {
 }
 
 /** Full sync: push then pull */
-export async function syncNow(): Promise<boolean> {
+export async function syncNow(userId: string): Promise<boolean> {
     if (isSyncing) return false;
 
     const netState = await NetInfo.fetch();
@@ -135,7 +136,7 @@ export async function syncNow(): Promise<boolean> {
 
     try {
         const pushOk = await pushChanges();
-        const pullOk = await pullChanges();
+        const pullOk = await pullChanges(userId);
         notifyListeners(pushOk && pullOk ? 'idle' : 'error');
         return pushOk && pullOk;
     } catch (error) {
@@ -147,14 +148,14 @@ export async function syncNow(): Promise<boolean> {
 }
 
 /** Start auto-sync on connectivity change */
-export function startAutoSync() {
+export function startAutoSync(userId: string) {
     // Sync on app start
-    syncNow();
+    syncNow(userId);
 
     // Sync when connection restored
     NetInfo.addEventListener(state => {
         if (state.isConnected) {
-            syncNow();
+            syncNow(userId);
         } else {
             notifyListeners('offline');
         }
