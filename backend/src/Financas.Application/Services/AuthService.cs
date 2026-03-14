@@ -40,7 +40,7 @@ public class AuthService : IAuthService
         await _userRepository.CreateAsync(user);
         await _categoryService.SeedDefaultCategoriesAsync(user.Id);
 
-        return GenerateToken(user);
+        return await GenerateToken(user);
     }
 
     public async Task<TokenResponseDto> LoginAsync(LoginDto dto)
@@ -51,10 +51,21 @@ public class AuthService : IAuthService
         if (!BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
             throw new InvalidOperationException("Email ou senha inválidos.");
 
-        return GenerateToken(user);
+        return await GenerateToken(user);
     }
 
-    private TokenResponseDto GenerateToken(User user)
+    public async Task<TokenResponseDto> RefreshTokenAsync(RefreshTokenDto dto)
+    {
+        var user = await _userRepository.GetByRefreshTokenAsync(dto.RefreshToken)
+            ?? throw new InvalidOperationException("Refresh token inválido.");
+
+        if (user.RefreshTokenExpiry < DateTime.UtcNow)
+            throw new InvalidOperationException("Refresh token expirado.");
+
+        return await GenerateToken(user);
+    }
+
+    private async Task<TokenResponseDto> GenerateToken(User user)
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
             _configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key not configured")));
@@ -71,13 +82,20 @@ public class AuthService : IAuthService
             issuer: _configuration["Jwt:Issuer"],
             audience: _configuration["Jwt:Audience"],
             claims: claims,
-            expires: DateTime.UtcNow.AddDays(7),
+            expires: DateTime.UtcNow.AddHours(1),
             signingCredentials: credentials
         );
+
+        var refreshToken = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+        user.RefreshToken = refreshToken;
+        user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
+
+        await _userRepository.UpdateAsync(user);
 
         return new TokenResponseDto
         {
             Token = new JwtSecurityTokenHandler().WriteToken(token),
+            RefreshToken = refreshToken,
             UserName = user.Name,
             Email = user.Email,
             UserId = user.Id

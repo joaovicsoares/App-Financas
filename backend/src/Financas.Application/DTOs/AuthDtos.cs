@@ -31,7 +31,14 @@ public class LoginDto
 public class TokenResponseDto
 {
     public string Token { get; set; } = string.Empty;
+    public string RefreshToken { get; set; } = string.Empty;
     public string UserName { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public Guid UserId { get; set; }
+}
+
+public class RefreshTokenDto
+{
+    [Required]
+    public string RefreshToken { get; set; } = string.Empty;
 }
