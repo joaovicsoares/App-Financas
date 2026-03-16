@@ -13,6 +13,7 @@ public class AppDbContext : DbContext
     public DbSet<SharedWallet> SharedWallets => Set<SharedWallet>();
     public DbSet<SharedWalletMember> SharedWalletMembers => Set<SharedWalletMember>();
     public DbSet<Investment> Investments => Set<Investment>();
+    public DbSet<TelegramIntegration> TelegramIntegrations => Set<TelegramIntegration>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -108,6 +109,23 @@ public class AppDbContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasIndex(i => i.UserId);
+        });
+
+        // TelegramIntegration
+        modelBuilder.Entity<TelegramIntegration>(entity =>
+        {
+            entity.ToTable("telegram_integracao");
+            entity.HasKey(t => t.Id);
+            entity.HasIndex(t => t.TelegramUserId).IsUnique();
+            entity.Property(t => t.RefreshToken).IsRequired();
+            entity.Property(t => t.IsActive).HasDefaultValue(true);
+            entity.Property(t => t.CreatedAt).HasDefaultValueSql("NOW()");
+            entity.Property(t => t.UpdatedAt).HasDefaultValueSql("NOW()");
+
+            entity.HasOne(t => t.User)
+                .WithMany(u => u.TelegramIntegrations)
+                .HasForeignKey(t => t.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

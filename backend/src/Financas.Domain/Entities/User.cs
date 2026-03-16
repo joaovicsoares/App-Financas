@@ -12,6 +12,7 @@ public class User
     public ICollection<Transaction> Transactions { get; set; } = [];
     public ICollection<SharedWalletMember> SharedWalletMemberships { get; set; } = [];
     public ICollection<Investment> Investments { get; set; } = [];
+    public ICollection<TelegramIntegration> TelegramIntegrations { get; set; } = [];
     public string? RefreshToken { get; set; }
     public DateTime? RefreshTokenExpiry { get; set; }
 }
