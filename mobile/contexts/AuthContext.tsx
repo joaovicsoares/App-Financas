@@ -36,6 +36,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
         } catch {
             await SecureStore.deleteItemAsync('token');
+            await SecureStore.deleteItemAsync('refreshToken');
         } finally {
             setIsLoading(false);
         }
@@ -43,20 +44,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     async function login(email: string, password: string) {
         const response = await api.post('/auth/login', { email, password });
-        const { token, userName, email: userEmail, userId } = response.data;
+        const { token, refreshToken, userName, email: userEmail, userId } = response.data;
         await SecureStore.setItemAsync('token', token);
+        await SecureStore.setItemAsync('refreshToken', refreshToken);
         setUser({ userId, name: userName, email: userEmail });
     }
 
     async function register(name: string, email: string, password: string) {
         const response = await api.post('/auth/register', { name, email, password });
-        const { token, userName, email: userEmail, userId } = response.data;
+        const { token, refreshToken, userName, email: userEmail, userId } = response.data;
         await SecureStore.setItemAsync('token', token);
+        await SecureStore.setItemAsync('refreshToken', refreshToken);
         setUser({ userId, name: userName, email: userEmail });
     }
 
     async function logout() {
         await SecureStore.deleteItemAsync('token');
+        await SecureStore.deleteItemAsync('refreshToken');
         setUser(null);
     }
 

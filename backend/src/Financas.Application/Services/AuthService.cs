@@ -78,24 +78,28 @@ public class AuthService : IAuthService
             new Claim(ClaimTypes.Name, user.Name)
         };
 
+        var accessTokenExpiry = DateTime.UtcNow.AddHours(1);
         var token = new JwtSecurityToken(
             issuer: _configuration["Jwt:Issuer"],
             audience: _configuration["Jwt:Audience"],
             claims: claims,
-            expires: DateTime.UtcNow.AddHours(1),
+            expires: accessTokenExpiry,
             signingCredentials: credentials
         );
 
         var refreshToken = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+        var refreshTokenExpiry = DateTime.UtcNow.AddDays(7);
         user.RefreshToken = refreshToken;
-        user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
+        user.RefreshTokenExpiry = refreshTokenExpiry;
 
         await _userRepository.UpdateAsync(user);
 
         return new TokenResponseDto
         {
             Token = new JwtSecurityTokenHandler().WriteToken(token),
+            TokenExpiry = accessTokenExpiry,
             RefreshToken = refreshToken,
+            RefreshTokenExpiry = refreshTokenExpiry,
             UserName = user.Name,
             Email = user.Email,
             UserId = user.Id
