@@ -14,4 +14,4 @@ export const Colors = {
   white: '#FFFFFF',
 };
 
-export const API_URL = 'http://linuxjoao.tail7796c7.ts.net/api'; // url na vpn
+export const API_URL = 'https://linuxjoao.tail7796c7.ts.net/api'; // url na vpn
