@@ -11,6 +11,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { Colors } from '@/constants';
 import api from '@/services/api';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useSafeArea } from '@/hooks/useSafeArea';
 
 interface Transaction {
     id: string;
@@ -28,6 +29,7 @@ interface Transaction {
 
 export default function TransactionsScreen() {
     const router = useRouter();
+    const safeArea = useSafeArea();
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [refreshing, setRefreshing] = useState(false);
     const [filter, setFilter] = useState<'all' | 'income' | 'expense'>('all');
@@ -76,7 +78,7 @@ export default function TransactionsScreen() {
 
     return (
         <View style={styles.container}>
-            <View style={styles.header}>
+            <View style={[styles.header, { paddingTop: safeArea.paddingTop }]}>
                 <Text style={styles.title}>Transações</Text>
             </View>
 
@@ -158,7 +160,6 @@ const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: Colors.background },
     header: {
         paddingHorizontal: 24,
-        paddingTop: 60,
         paddingBottom: 16,
     },
     title: { fontSize: 28, fontWeight: '700', color: Colors.text },

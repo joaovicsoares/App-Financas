@@ -13,6 +13,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { Colors } from '@/constants';
 import api from '@/services/api';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useSafeArea } from '@/hooks/useSafeArea';
 
 interface SharedWallet {
     id: string;
@@ -31,6 +32,7 @@ interface WalletMember {
 
 export default function WalletScreen() {
     const router = useRouter();
+    const safeArea = useSafeArea();
     const [wallets, setWallets] = useState<SharedWallet[]>([]);
     const [refreshing, setRefreshing] = useState(false);
     const [showCreate, setShowCreate] = useState(false);
@@ -104,7 +106,7 @@ export default function WalletScreen() {
 
     return (
         <View style={styles.container}>
-            <View style={styles.header}>
+            <View style={[styles.header, { paddingTop: safeArea.paddingTop }]}>
                 <Text style={styles.title}>Carteira Compartilhada</Text>
                 <TouchableOpacity onPress={() => setShowCreate(!showCreate)}>
                     <MaterialCommunityIcons
@@ -195,7 +197,6 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: 24,
-        paddingTop: 60,
         paddingBottom: 16,
     },
     title: { fontSize: 28, fontWeight: '700', color: Colors.text },

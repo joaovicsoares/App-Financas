@@ -12,6 +12,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { Colors } from '@/constants';
 import api from '@/services/api';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useSafeArea } from '@/hooks/useSafeArea';
 
 interface InvestmentSummary {
     totalInvested: number;
@@ -55,6 +56,7 @@ const TYPE_COLORS: Record<number, string> = {
 
 export default function InvestmentsScreen() {
     const router = useRouter();
+    const safeArea = useSafeArea();
     const [investments, setInvestments] = useState<Investment[]>([]);
     const [summary, setSummary] = useState<InvestmentSummary | null>(null);
     const [refreshing, setRefreshing] = useState(false);
@@ -122,7 +124,7 @@ export default function InvestmentsScreen() {
                 ListHeaderComponent={
                     <View>
                         {/* Header */}
-                        <View style={styles.header}>
+                        <View style={[styles.header, { paddingTop: safeArea.paddingTop }]}>
                             <Text style={styles.title}>Investimentos</Text>
                         </View>
 
@@ -272,7 +274,6 @@ const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: Colors.background },
     header: {
         paddingHorizontal: 0,
-        paddingTop: 60,
         paddingBottom: 16,
     },
     title: { fontSize: 28, fontWeight: '700', color: Colors.text },
