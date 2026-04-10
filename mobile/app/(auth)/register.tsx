@@ -15,6 +15,7 @@ import { useRouter } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { Colors } from '@/constants';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useSafeSpacing } from '@/hooks/use-safe-spacing';
 
 export default function RegisterScreen() {
     const [name, setName] = useState('');
@@ -25,6 +26,7 @@ export default function RegisterScreen() {
     const [loading, setLoading] = useState(false);
     const { register } = useAuth();
     const router = useRouter();
+    const { insets, scrollPaddingBottom } = useSafeSpacing();
 
     async function handleRegister() {
         if (!name || !email || !password || !confirmPassword) {
@@ -62,7 +64,16 @@ export default function RegisterScreen() {
             style={styles.container}
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
-            <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+            <ScrollView
+                contentContainerStyle={[
+                    styles.scrollContent,
+                    {
+                        paddingTop: insets.top + 24,
+                        paddingBottom: scrollPaddingBottom,
+                    },
+                ]}
+                showsVerticalScrollIndicator={false}
+            >
                 <View style={styles.header}>
                     <MaterialCommunityIcons name="account-plus" size={64} color={Colors.primary} />
                     <Text style={styles.title}>Criar Conta</Text>
@@ -157,7 +168,6 @@ const styles = StyleSheet.create({
         flexGrow: 1,
         justifyContent: 'center',
         paddingHorizontal: 24,
-        paddingVertical: 48,
     },
     header: {
         alignItems: 'center',

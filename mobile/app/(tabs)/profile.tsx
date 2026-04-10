@@ -3,9 +3,11 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { Colors } from '@/constants';
 import { useAuth } from '@/contexts/AuthContext';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useSafeSpacing } from '@/hooks/use-safe-spacing';
 
 export default function ProfileScreen() {
     const { user, logout } = useAuth();
+    const { headerPaddingTop, screenPaddingBottom } = useSafeSpacing();
 
     function handleLogout() {
         Alert.alert('Sair', 'Tem certeza que deseja sair?', [
@@ -16,7 +18,7 @@ export default function ProfileScreen() {
 
     return (
         <View style={styles.container}>
-            <View style={styles.header}>
+            <View style={[styles.header, { paddingTop: headerPaddingTop }]}>
                 <Text style={styles.title}>Perfil</Text>
             </View>
 
@@ -52,7 +54,7 @@ export default function ProfileScreen() {
                 <Text style={styles.logoutText}>Sair da conta</Text>
             </TouchableOpacity>
 
-            <Text style={styles.version}>Finanças v1.0.0</Text>
+            <Text style={[styles.version, { marginBottom: screenPaddingBottom }]}>Finanças v1.0.0</Text>
         </View>
     );
 }
@@ -61,7 +63,6 @@ const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: Colors.background },
     header: {
         paddingHorizontal: 24,
-        paddingTop: 60,
         paddingBottom: 24,
     },
     title: { fontSize: 28, fontWeight: '700', color: Colors.text },

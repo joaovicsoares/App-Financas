@@ -13,6 +13,7 @@ import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { Colors } from '@/constants';
 import api from '@/services/api';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useSafeSpacing } from '@/hooks/use-safe-spacing';
 
 const INVESTMENT_TYPES: Record<number, string> = {
     0: 'CDB',
@@ -53,6 +54,7 @@ interface InvestmentDetail {
 export default function InvestmentDetailScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();
     const router = useRouter();
+    const { headerPaddingTop, scrollPaddingBottom } = useSafeSpacing();
     const [investment, setInvestment] = useState<InvestmentDetail | null>(null);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -163,7 +165,7 @@ export default function InvestmentDetailScreen() {
     return (
         <View style={styles.container}>
             {/* Header */}
-            <View style={styles.header}>
+            <View style={[styles.header, { paddingTop: headerPaddingTop }]}>
                 <TouchableOpacity onPress={() => router.back()}>
                     <MaterialCommunityIcons name="arrow-left" size={28} color={Colors.text} />
                 </TouchableOpacity>
@@ -177,7 +179,7 @@ export default function InvestmentDetailScreen() {
 
             <ScrollView
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.content}
+                contentContainerStyle={[styles.content, { paddingBottom: scrollPaddingBottom }]}
                 refreshControl={
                     <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />
                 }
@@ -296,11 +298,10 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: 24,
-        paddingTop: 60,
         paddingBottom: 16,
     },
     headerTitle: { fontSize: 18, fontWeight: '600', color: Colors.text, flex: 1, marginHorizontal: 12, textAlign: 'center' },
-    content: { paddingHorizontal: 24, paddingBottom: 40 },
+    content: { paddingHorizontal: 24 },
 
     // Badges
     badgeRow: { flexDirection: 'row', gap: 8, marginBottom: 20 },

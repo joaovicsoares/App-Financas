@@ -14,6 +14,7 @@ import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { Colors } from '@/constants';
 import api from '@/services/api';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useSafeSpacing } from '@/hooks/use-safe-spacing';
 
 interface DashboardData {
     balance: number;
@@ -52,6 +53,7 @@ interface SharedWallet {
 export default function WalletDetailScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();
     const router = useRouter();
+    const { headerPaddingTop, tabListPaddingBottom, floatingBottom } = useSafeSpacing();
     const [wallet, setWallet] = useState<SharedWallet | null>(null);
     const [dashboard, setDashboard] = useState<DashboardData | null>(null);
     const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -279,7 +281,7 @@ export default function WalletDetailScreen() {
     return (
         <View style={styles.container}>
             {/* Header */}
-            <View style={styles.header}>
+            <View style={[styles.header, { paddingTop: headerPaddingTop }]}>
                 <TouchableOpacity onPress={() => router.back()}>
                     <MaterialCommunityIcons name="arrow-left" size={28} color={Colors.text} />
                 </TouchableOpacity>
@@ -298,7 +300,7 @@ export default function WalletDetailScreen() {
                 data={transactions}
                 keyExtractor={(item) => item.id}
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.list}
+                contentContainerStyle={[styles.list, { paddingBottom: tabListPaddingBottom }]}
                 ListHeaderComponent={ListHeader}
                 refreshControl={
                     <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />
@@ -345,7 +347,7 @@ export default function WalletDetailScreen() {
 
             {/* FAB */}
             <TouchableOpacity
-                style={styles.fab}
+                style={[styles.fab, { bottom: floatingBottom }]}
                 onPress={() =>
                     router.push({
                         pathname: '/transaction/new',
@@ -365,7 +367,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: 24,
-        paddingTop: 60,
         paddingBottom: 16,
     },
     headerTitle: { fontSize: 20, fontWeight: '700', color: Colors.text },
@@ -378,7 +379,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
-    list: { paddingHorizontal: 24, paddingBottom: 100 },
+    list: { paddingHorizontal: 24 },
 
     // Dashboard
     dashboardCard: {
@@ -526,7 +527,6 @@ const styles = StyleSheet.create({
     fab: {
         position: 'absolute',
         right: 24,
-        bottom: 32,
         width: 56,
         height: 56,
         borderRadius: 28,

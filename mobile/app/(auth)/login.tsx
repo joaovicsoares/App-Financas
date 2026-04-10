@@ -14,6 +14,7 @@ import { useRouter } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { Colors } from '@/constants';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useSafeSpacing } from '@/hooks/use-safe-spacing';
 
 export default function LoginScreen() {
     const [email, setEmail] = useState('');
@@ -22,6 +23,7 @@ export default function LoginScreen() {
     const [loading, setLoading] = useState(false);
     const { login } = useAuth();
     const router = useRouter();
+    const { screenPaddingBottom, insets } = useSafeSpacing();
 
     async function handleLogin() {
         if (!email || !password) {
@@ -41,7 +43,13 @@ export default function LoginScreen() {
 
     return (
         <KeyboardAvoidingView
-            style={styles.container}
+            style={[
+                styles.container,
+                {
+                    paddingTop: insets.top + 24,
+                    paddingBottom: screenPaddingBottom,
+                },
+            ]}
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
             <View style={styles.header}>

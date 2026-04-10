@@ -1,18 +1,35 @@
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { Colors } from '@/constants';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, Alert, View } from 'react-native';
 import { getDB } from '@/services/database';
 import { startAutoSync } from '@/services/sync/syncEngine';
 import { VersionService } from '@/services/versionService';
-import { Alert } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 function RootLayoutNav() {
   const { isAuthenticated, isLoading, user } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+
+  const checkForAppUpdate = useCallback(async () => {
+    const update = await VersionService.checkUpdate();
+    if (update) {
+      Alert.alert(
+        'Nova VersÃ£o DisponÃ­vel',
+        `Uma nova versÃ£o (${update.latestVersion}) estÃ¡ disponÃ­vel. Deseja atualizar agora?`,
+        [
+          { text: 'Depois', style: 'cancel' },
+          {
+            text: 'Atualizar',
+            onPress: () => VersionService.downloadAndInstall(update.downloadUrl),
+          },
+        ]
+      );
+    }
+  }, []);
 
   useEffect(() => {
     if (isLoading) return;
@@ -31,9 +48,9 @@ function RootLayoutNav() {
       if (user?.userId) {
         startAutoSync(user.userId);
       }
-      checkAppVersion();
+      checkForAppUpdate();
     }
-  }, [isAuthenticated, isLoading, segments]);
+  }, [checkForAppUpdate, isAuthenticated, isLoading, router, segments, user?.userId]);
 
   async function checkAppVersion() {
     const update = await VersionService.checkUpdate();
@@ -78,8 +95,10 @@ function RootLayoutNav() {
 
 export default function RootLayout() {
   return (
-    <AuthProvider>
-      <RootLayoutNav />
-    </AuthProvider>
+    <SafeAreaProvider>
+      <AuthProvider>
+        <RootLayoutNav />
+      </AuthProvider>
+    </SafeAreaProvider>
   );
 }

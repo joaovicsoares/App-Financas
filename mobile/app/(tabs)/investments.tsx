@@ -12,6 +12,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { Colors } from '@/constants';
 import api from '@/services/api';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useSafeSpacing } from '@/hooks/use-safe-spacing';
 
 interface InvestmentSummary {
     totalInvested: number;
@@ -55,6 +56,7 @@ const TYPE_COLORS: Record<number, string> = {
 
 export default function InvestmentsScreen() {
     const router = useRouter();
+    const { headerPaddingTop, tabListPaddingBottom, floatingBottom } = useSafeSpacing();
     const [investments, setInvestments] = useState<Investment[]>([]);
     const [summary, setSummary] = useState<InvestmentSummary | null>(null);
     const [refreshing, setRefreshing] = useState(false);
@@ -115,14 +117,14 @@ export default function InvestmentsScreen() {
                 data={activeInvestments}
                 keyExtractor={(item) => item.id}
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.list}
+                contentContainerStyle={[styles.list, { paddingBottom: tabListPaddingBottom }]}
                 refreshControl={
                     <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />
                 }
                 ListHeaderComponent={
                     <View>
                         {/* Header */}
-                        <View style={styles.header}>
+                        <View style={[styles.header, { paddingTop: headerPaddingTop }]}>
                             <Text style={styles.title}>Investimentos</Text>
                         </View>
 
@@ -259,7 +261,7 @@ export default function InvestmentsScreen() {
 
             {/* FAB */}
             <TouchableOpacity
-                style={styles.fab}
+                style={[styles.fab, { bottom: floatingBottom }]}
                 onPress={() => router.push('/investment/new' as any)}
             >
                 <MaterialCommunityIcons name="plus" size={28} color={Colors.white} />
@@ -272,11 +274,10 @@ const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: Colors.background },
     header: {
         paddingHorizontal: 0,
-        paddingTop: 60,
         paddingBottom: 16,
     },
     title: { fontSize: 28, fontWeight: '700', color: Colors.text },
-    list: { paddingHorizontal: 24, paddingBottom: 100 },
+    list: { paddingHorizontal: 24 },
 
     // Summary
     summaryCard: {
@@ -351,7 +352,6 @@ const styles = StyleSheet.create({
     fab: {
         position: 'absolute',
         right: 24,
-        bottom: 90,
         width: 56,
         height: 56,
         borderRadius: 28,

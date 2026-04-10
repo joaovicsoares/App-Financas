@@ -11,6 +11,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { Colors } from '@/constants';
 import api from '@/services/api';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useSafeSpacing } from '@/hooks/use-safe-spacing';
 
 interface Transaction {
     id: string;
@@ -28,6 +29,7 @@ interface Transaction {
 
 export default function TransactionsScreen() {
     const router = useRouter();
+    const { headerPaddingTop, tabListPaddingBottom, floatingBottom } = useSafeSpacing();
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [refreshing, setRefreshing] = useState(false);
     const [filter, setFilter] = useState<'all' | 'income' | 'expense'>('all');
@@ -76,7 +78,7 @@ export default function TransactionsScreen() {
 
     return (
         <View style={styles.container}>
-            <View style={styles.header}>
+            <View style={[styles.header, { paddingTop: headerPaddingTop }]}>
                 <Text style={styles.title}>Transações</Text>
             </View>
 
@@ -99,7 +101,7 @@ export default function TransactionsScreen() {
                 data={filteredTransactions}
                 keyExtractor={(item) => item.id}
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.list}
+                contentContainerStyle={[styles.list, { paddingBottom: tabListPaddingBottom }]}
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />}
                 ListEmptyComponent={
                     <View style={styles.emptyState}>
@@ -147,7 +149,7 @@ export default function TransactionsScreen() {
                 )}
             />
 
-            <TouchableOpacity style={styles.fab} onPress={() => router.push('/transaction/new')}>
+            <TouchableOpacity style={[styles.fab, { bottom: floatingBottom }]} onPress={() => router.push('/transaction/new')}>
                 <MaterialCommunityIcons name="plus" size={28} color={Colors.white} />
             </TouchableOpacity>
         </View>
@@ -158,7 +160,6 @@ const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: Colors.background },
     header: {
         paddingHorizontal: 24,
-        paddingTop: 60,
         paddingBottom: 16,
     },
     title: { fontSize: 28, fontWeight: '700', color: Colors.text },
@@ -182,7 +183,7 @@ const styles = StyleSheet.create({
     },
     filterText: { color: Colors.textSecondary, fontSize: 13, fontWeight: '500' },
     filterTextActive: { color: Colors.white },
-    list: { paddingHorizontal: 24, paddingBottom: 100 },
+    list: { paddingHorizontal: 24 },
     card: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -209,7 +210,6 @@ const styles = StyleSheet.create({
     fab: {
         position: 'absolute',
         right: 24,
-        bottom: 90,
         width: 56,
         height: 56,
         borderRadius: 28,

@@ -13,6 +13,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { Colors } from '@/constants';
 import api from '@/services/api';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useSafeSpacing } from '@/hooks/use-safe-spacing';
 
 interface SharedWallet {
     id: string;
@@ -31,6 +32,7 @@ interface WalletMember {
 
 export default function WalletScreen() {
     const router = useRouter();
+    const { headerPaddingTop, tabListPaddingBottom } = useSafeSpacing();
     const [wallets, setWallets] = useState<SharedWallet[]>([]);
     const [refreshing, setRefreshing] = useState(false);
     const [showCreate, setShowCreate] = useState(false);
@@ -104,7 +106,7 @@ export default function WalletScreen() {
 
     return (
         <View style={styles.container}>
-            <View style={styles.header}>
+            <View style={[styles.header, { paddingTop: headerPaddingTop }]}>
                 <Text style={styles.title}>Carteira Compartilhada</Text>
                 <TouchableOpacity onPress={() => setShowCreate(!showCreate)}>
                     <MaterialCommunityIcons
@@ -134,7 +136,7 @@ export default function WalletScreen() {
                 data={wallets}
                 keyExtractor={(item) => item.id}
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.list}
+                contentContainerStyle={[styles.list, { paddingBottom: tabListPaddingBottom }]}
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />}
                 ListEmptyComponent={
                     <View style={styles.emptyState}>
@@ -195,7 +197,6 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: 24,
-        paddingTop: 60,
         paddingBottom: 16,
     },
     title: { fontSize: 28, fontWeight: '700', color: Colors.text },
@@ -223,7 +224,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     createBtnText: { color: Colors.white, fontWeight: '600' },
-    list: { paddingHorizontal: 24, paddingBottom: 100 },
+    list: { paddingHorizontal: 24 },
     walletCard: {
         backgroundColor: Colors.surface,
         borderRadius: 16,

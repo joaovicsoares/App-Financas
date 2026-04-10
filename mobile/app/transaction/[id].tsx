@@ -13,6 +13,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Colors } from '@/constants';
 import api from '@/services/api';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useSafeSpacing } from '@/hooks/use-safe-spacing';
 
 interface Category {
     id: string;
@@ -25,6 +26,7 @@ interface Category {
 export default function EditTransactionScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();
     const router = useRouter();
+    const { headerPaddingTop, scrollPaddingBottom } = useSafeSpacing();
     const [type, setType] = useState<0 | 1>(1);
     const [amount, setAmount] = useState('');
     const [description, setDescription] = useState('');
@@ -33,11 +35,7 @@ export default function EditTransactionScreen() {
     const [loading, setLoading] = useState(false);
     const [loadingData, setLoadingData] = useState(true);
 
-    useEffect(() => {
-        loadData();
-    }, []);
-
-    async function loadData() {
+    const loadData = useCallback(async () => {
         try {
             const [catRes, transRes] = await Promise.all([
                 api.get('/categories'),
@@ -57,7 +55,11 @@ export default function EditTransactionScreen() {
         } finally {
             setLoadingData(false);
         }
-    }
+    }, [id]);
+
+    useEffect(() => {
+        loadData();
+    }, [loadData]);
 
     const filteredCategories = categories.filter((c) => c.type === type);
 
@@ -118,7 +120,7 @@ export default function EditTransactionScreen() {
 
     return (
         <View style={styles.container}>
-            <View style={styles.header}>
+            <View style={[styles.header, { paddingTop: headerPaddingTop }]}>
                 <TouchableOpacity onPress={() => router.back()}>
                     <MaterialCommunityIcons name="close" size={28} color={Colors.text} />
                 </TouchableOpacity>
@@ -128,7 +130,10 @@ export default function EditTransactionScreen() {
                 </TouchableOpacity>
             </View>
 
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+            <ScrollView
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={[styles.content, { paddingBottom: scrollPaddingBottom }]}
+            >
                 <View style={styles.typeSelector}>
                     <TouchableOpacity
                         style={[styles.typeBtn, type === 1 && styles.typeBtnExpense]}
@@ -206,11 +211,10 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: 24,
-        paddingTop: 60,
         paddingBottom: 16,
     },
     headerTitle: { fontSize: 18, fontWeight: '600', color: Colors.text },
-    content: { paddingHorizontal: 24, paddingBottom: 40 },
+    content: { paddingHorizontal: 24 },
     typeSelector: { flexDirection: 'row', gap: 12, marginBottom: 32 },
     typeBtn: {
         flex: 1,

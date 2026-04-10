@@ -14,6 +14,7 @@ import { useRouter } from 'expo-router';
 import { Colors } from '@/constants';
 import api from '@/services/api';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useSafeSpacing } from '@/hooks/use-safe-spacing';
 
 const INVESTMENT_TYPES = [
     { value: 0, label: 'CDB', icon: 'bank' },
@@ -26,6 +27,7 @@ const INVESTMENT_TYPES = [
 
 export default function NewInvestmentScreen() {
     const router = useRouter();
+    const { headerPaddingTop, scrollPaddingBottom } = useSafeSpacing();
     const [name, setName] = useState('');
     const [type, setType] = useState(0);
     const [amount, setAmount] = useState('');
@@ -75,7 +77,7 @@ export default function NewInvestmentScreen() {
     return (
         <View style={styles.container}>
             {/* Header */}
-            <View style={styles.header}>
+            <View style={[styles.header, { paddingTop: headerPaddingTop }]}>
                 <TouchableOpacity onPress={() => router.back()}>
                     <MaterialCommunityIcons name="close" size={28} color={Colors.text} />
                 </TouchableOpacity>
@@ -83,7 +85,10 @@ export default function NewInvestmentScreen() {
                 <View style={{ width: 28 }} />
             </View>
 
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+            <ScrollView
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={[styles.content, { paddingBottom: scrollPaddingBottom }]}
+            >
                 {/* Type Selector */}
                 <Text style={styles.sectionTitle}>Tipo</Text>
                 <View style={styles.typesGrid}>
@@ -206,11 +211,10 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: 24,
-        paddingTop: 60,
         paddingBottom: 16,
     },
     headerTitle: { fontSize: 18, fontWeight: '600', color: Colors.text },
-    content: { paddingHorizontal: 24, paddingBottom: 40 },
+    content: { paddingHorizontal: 24 },
     sectionTitle: {
         fontSize: 14,
         fontWeight: '600',

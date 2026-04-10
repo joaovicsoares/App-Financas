@@ -13,6 +13,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Colors } from '@/constants';
 import api from '@/services/api';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useSafeSpacing } from '@/hooks/use-safe-spacing';
 
 interface Category {
     id: string;
@@ -30,6 +31,7 @@ const EXPENSE_MODES = [
 
 export default function NewTransactionScreen() {
     const router = useRouter();
+    const { headerPaddingTop, scrollPaddingBottom } = useSafeSpacing();
     const { walletId, walletName } = useLocalSearchParams<{ walletId?: string; walletName?: string }>();
     const [type, setType] = useState<0 | 1>(1); // 0=income, 1=expense
     const [amount, setAmount] = useState('');
@@ -98,7 +100,7 @@ export default function NewTransactionScreen() {
     return (
         <View style={styles.container}>
             {/* Header */}
-            <View style={styles.header}>
+            <View style={[styles.header, { paddingTop: headerPaddingTop }]}>
                 <TouchableOpacity onPress={() => router.back()}>
                     <MaterialCommunityIcons name="close" size={28} color={Colors.text} />
                 </TouchableOpacity>
@@ -113,7 +115,10 @@ export default function NewTransactionScreen() {
                 </View>
             )}
 
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+            <ScrollView
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={[styles.content, { paddingBottom: scrollPaddingBottom }]}
+            >
                 {/* Type Selector */}
                 <View style={styles.typeSelector}>
                     <TouchableOpacity
@@ -283,11 +288,10 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: 24,
-        paddingTop: 60,
         paddingBottom: 16,
     },
     headerTitle: { fontSize: 18, fontWeight: '600', color: Colors.text },
-    content: { paddingHorizontal: 24, paddingBottom: 40 },
+    content: { paddingHorizontal: 24 },
     typeSelector: {
         flexDirection: 'row',
         gap: 12,

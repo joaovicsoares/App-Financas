@@ -12,6 +12,7 @@ import { Colors } from '@/constants';
 import { useAuth } from '@/contexts/AuthContext';
 import api from '@/services/api';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useSafeSpacing } from '@/hooks/use-safe-spacing';
 
 interface DashboardData {
   balance: number;
@@ -37,6 +38,7 @@ interface Transaction {
 export default function DashboardScreen() {
   const { user } = useAuth();
   const router = useRouter();
+  const { headerPaddingTop, tabListPaddingBottom, floatingBottom } = useSafeSpacing();
   const [data, setData] = useState<DashboardData | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -72,7 +74,7 @@ export default function DashboardScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />}
       >
         {/* Header */}
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: headerPaddingTop }]}>
           <View>
             <Text style={styles.greeting}>Olá,</Text>
             <Text style={styles.userName}>{user?.name} 👋</Text>
@@ -112,7 +114,7 @@ export default function DashboardScreen() {
         </View>
 
         {/* Recent Transactions */}
-        <View style={styles.section}>
+        <View style={[styles.section, { paddingBottom: tabListPaddingBottom }]}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Últimas Transações</Text>
             <TouchableOpacity onPress={() => router.push('/(tabs)/transactions')}>
@@ -168,7 +170,7 @@ export default function DashboardScreen() {
 
       {/* FAB */}
       <TouchableOpacity
-        style={styles.fab}
+        style={[styles.fab, { bottom: floatingBottom }]}
         onPress={() => router.push('/transaction/new')}
       >
         <MaterialCommunityIcons name="plus" size={28} color={Colors.white} />
@@ -187,7 +189,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 24,
-    paddingTop: 60,
     paddingBottom: 24,
   },
   greeting: {
@@ -251,7 +252,6 @@ const styles = StyleSheet.create({
   section: {
     paddingHorizontal: 24,
     paddingTop: 32,
-    paddingBottom: 100,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -321,7 +321,6 @@ const styles = StyleSheet.create({
   fab: {
     position: 'absolute',
     right: 24,
-    bottom: 90,
     width: 56,
     height: 56,
     borderRadius: 28,
