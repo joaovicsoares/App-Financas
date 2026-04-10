@@ -39,4 +39,14 @@ public class DashboardController : ControllerBase
             return Forbid(ex.Message);
         }
     }
+
+    [HttpGet("insights/{year}/{month}")]
+    public async Task<ActionResult> GetMonthlyInsights(int year, int month)
+    {
+        if (month < 1 || month > 12)
+            return BadRequest("Mês inválido");
+
+        var insights = await _dashboardService.GetMonthlyInsightsAsync(GetUserId(), year, month);
+        return Ok(insights);
+    }
 }

@@ -6,4 +6,5 @@ public interface IDashboardService
 {
     Task<DashboardDto> GetDashboardAsync(Guid userId);
     Task<DashboardDto> GetWalletDashboardAsync(Guid userId, Guid walletId);
+    Task<MonthlyInsightsDto> GetMonthlyInsightsAsync(Guid userId, int year, int month);
 }

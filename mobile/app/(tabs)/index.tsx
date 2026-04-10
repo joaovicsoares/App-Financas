@@ -19,6 +19,34 @@ interface DashboardData {
   totalIncome: number;
   totalExpenses: number;
   recentTransactions: Transaction[];
+  topExpenseCategories?: CategoryExpense[];
+  monthComparison?: MonthComparison;
+  dailyAverageExpense?: number;
+  projectedMonthExpense?: number;
+  daysRemainingInMonth?: number;
+  expensesByDayOfWeek?: DayOfWeekExpense[];
+}
+
+interface CategoryExpense {
+  categoryName: string;
+  categoryIcon: string;
+  categoryColor: string;
+  totalAmount: number;
+  transactionCount: number;
+  percentage: number;
+}
+
+interface MonthComparison {
+  previousMonthExpenses: number;
+  currentMonthExpenses: number;
+  difference: number;
+  percentageChange: number;
+}
+
+interface DayOfWeekExpense {
+  dayName: string;
+  dayNumber: number;
+  totalAmount: number;
 }
 
 interface Transaction {
@@ -45,9 +73,11 @@ export default function DashboardScreen() {
   const loadDashboard = useCallback(async () => {
     try {
       const response = await api.get('/dashboard');
+      console.log('Dashboard response:', JSON.stringify(response.data, null, 2));
       setData(response.data);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading dashboard:', error);
+      console.error('Error details:', error.response?.data);
     }
   }, []);
 
@@ -112,6 +142,137 @@ export default function DashboardScreen() {
             </View>
           </View>
         </View>
+
+        {/* Month Comparison Card */}
+        {data?.monthComparison && data.monthComparison.currentMonthExpenses !== undefined && (
+          <View style={styles.comparisonCard}>
+            <View style={styles.comparisonHeader}>
+              <MaterialCommunityIcons name="chart-line" size={20} color={Colors.primary} />
+              <Text style={styles.comparisonTitle}>Comparação com mês anterior</Text>
+            </View>
+            <View style={styles.comparisonContent}>
+              <View style={styles.comparisonItem}>
+                <Text style={styles.comparisonLabel}>Mês anterior</Text>
+                <Text style={styles.comparisonValue}>{formatCurrency(data.monthComparison.previousMonthExpenses || 0)}</Text>
+              </View>
+              <MaterialCommunityIcons 
+                name="arrow-right"
+                size={24} 
+                color={Colors.textMuted} 
+              />
+              <View style={styles.comparisonItem}>
+                <Text style={styles.comparisonLabel}>Este mês</Text>
+                <Text style={styles.comparisonValue}>{formatCurrency(data.monthComparison.currentMonthExpenses || 0)}</Text>
+              </View>
+            </View>
+            <View style={[
+              styles.comparisonBadge, 
+              { backgroundColor: (data.monthComparison.difference || 0) > 0 ? Colors.expense + '15' : Colors.income + '15' }
+            ]}>
+              <MaterialCommunityIcons 
+                name={(data.monthComparison.difference || 0) > 0 ? "arrow-up" : "arrow-down"} 
+                size={16} 
+                color={(data.monthComparison.difference || 0) > 0 ? Colors.expense : Colors.income} 
+              />
+              <Text style={[
+                styles.comparisonBadgeText,
+                { color: (data.monthComparison.difference || 0) > 0 ? Colors.expense : Colors.income }
+              ]}>
+                {Math.abs(data.monthComparison.percentageChange || 0).toFixed(1)}% 
+                {(data.monthComparison.difference || 0) > 0 ? ' a mais' : ' a menos'}
+              </Text>
+            </View>
+          </View>
+        )}
+
+        {/* Insights Cards Row */}
+        <View style={styles.insightsRow}>
+          <View style={styles.insightCard}>
+            <MaterialCommunityIcons name="calendar-today" size={24} color={Colors.primary} />
+            <Text style={styles.insightValue}>{data?.daysRemainingInMonth ?? 0}</Text>
+            <Text style={styles.insightLabel}>dias restantes</Text>
+          </View>
+          <View style={styles.insightCard}>
+            <MaterialCommunityIcons name="cash-multiple" size={24} color={Colors.expense} />
+            <Text style={styles.insightValue}>{formatCurrency(data?.dailyAverageExpense ?? 0)}</Text>
+            <Text style={styles.insightLabel}>média/dia</Text>
+          </View>
+        </View>
+
+        {/* Projection Card */}
+        {data && (data.projectedMonthExpense || 0) > 0 && (
+          <View style={styles.projectionCard}>
+            <View style={styles.projectionHeader}>
+              <MaterialCommunityIcons name="crystal-ball" size={20} color={Colors.primary} />
+              <Text style={styles.projectionTitle}>Projeção do mês</Text>
+            </View>
+            <Text style={styles.projectionValue}>{formatCurrency(data.projectedMonthExpense || 0)}</Text>
+            <Text style={styles.projectionSubtext}>
+              Baseado na média de {formatCurrency(data.dailyAverageExpense || 0)}/dia
+            </Text>
+          </View>
+        )}
+
+        {/* Top Categories */}
+        {data?.topExpenseCategories && data.topExpenseCategories.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Maiores Gastos por Categoria</Text>
+            {data.topExpenseCategories.map((cat, index) => (
+              <View key={index} style={styles.categoryCard}>
+                <View style={[styles.categoryIcon, { backgroundColor: cat.categoryColor + '20' }]}>
+                  <MaterialCommunityIcons
+                    name={(cat.categoryIcon as any) || 'tag'}
+                    size={20}
+                    color={cat.categoryColor}
+                  />
+                </View>
+                <View style={styles.categoryInfo}>
+                  <Text style={styles.categoryName}>{cat.categoryName}</Text>
+                  <View style={styles.categoryBar}>
+                    <View 
+                      style={[
+                        styles.categoryBarFill, 
+                        { width: `${cat.percentage}%`, backgroundColor: cat.categoryColor }
+                      ]} 
+                    />
+                  </View>
+                  <Text style={styles.categoryCount}>{cat.transactionCount} transações</Text>
+                </View>
+                <View style={styles.categoryAmount}>
+                  <Text style={styles.categoryValue}>{formatCurrency(cat.totalAmount)}</Text>
+                  <Text style={styles.categoryPercentage}>{cat.percentage.toFixed(1)}%</Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {/* Expenses by Day of Week */}
+        {data?.expensesByDayOfWeek && data.expensesByDayOfWeek.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Gastos por Dia da Semana</Text>
+            <View style={styles.dayOfWeekContainer}>
+              {data.expensesByDayOfWeek.map((day) => {
+                const maxAmount = Math.max(...data.expensesByDayOfWeek!.map(d => d.totalAmount || 0));
+                const heightPercentage = maxAmount > 0 ? ((day.totalAmount || 0) / maxAmount) * 100 : 0;
+                return (
+                  <View key={day.dayNumber} style={styles.dayOfWeekItem}>
+                    <View style={styles.dayOfWeekBar}>
+                      <View 
+                        style={[
+                          styles.dayOfWeekBarFill, 
+                          { height: `${heightPercentage}%`, backgroundColor: Colors.primary }
+                        ]} 
+                      />
+                    </View>
+                    <Text style={styles.dayOfWeekLabel}>{(day.dayName || '').substring(0, 3)}</Text>
+                    <Text style={styles.dayOfWeekAmount}>{formatCurrency(day.totalAmount || 0)}</Text>
+                  </View>
+                );
+              })}
+            </View>
+          </View>
+        )}
 
         {/* Recent Transactions */}
         <View style={[styles.section, { paddingBottom: tabListPaddingBottom }]}>
@@ -248,6 +409,207 @@ const styles = StyleSheet.create({
     height: 40,
     backgroundColor: Colors.border,
     marginHorizontal: 16,
+  },
+  comparisonCard: {
+    marginHorizontal: 24,
+    marginTop: 16,
+    backgroundColor: Colors.surface,
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  comparisonHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 16,
+  },
+  comparisonTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  comparisonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  comparisonItem: {
+    flex: 1,
+  },
+  comparisonLabel: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+    marginBottom: 4,
+  },
+  comparisonValue: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  comparisonBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    gap: 4,
+  },
+  comparisonBadgeText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  insightsRow: {
+    flexDirection: 'row',
+    marginHorizontal: 24,
+    marginTop: 16,
+    gap: 12,
+  },
+  insightCard: {
+    flex: 1,
+    backgroundColor: Colors.surface,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: 'center',
+  },
+  insightValue: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: Colors.text,
+    marginTop: 8,
+  },
+  insightLabel: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+    marginTop: 4,
+    textAlign: 'center',
+  },
+  projectionCard: {
+    marginHorizontal: 24,
+    marginTop: 16,
+    backgroundColor: Colors.surface,
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  projectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
+  projectionTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  projectionValue: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: Colors.expense,
+    marginBottom: 4,
+  },
+  projectionSubtext: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+  },
+  categoryCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  categoryIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  categoryInfo: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  categoryName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 6,
+  },
+  categoryBar: {
+    height: 6,
+    backgroundColor: Colors.border,
+    borderRadius: 3,
+    overflow: 'hidden',
+    marginBottom: 4,
+  },
+  categoryBarFill: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  categoryCount: {
+    fontSize: 11,
+    color: Colors.textSecondary,
+  },
+  categoryAmount: {
+    alignItems: 'flex-end',
+    marginLeft: 12,
+  },
+  categoryValue: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  categoryPercentage: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+    marginTop: 2,
+  },
+  dayOfWeekContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    backgroundColor: Colors.surface,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  dayOfWeekItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  dayOfWeekBar: {
+    width: 32,
+    height: 100,
+    backgroundColor: Colors.border,
+    borderRadius: 6,
+    justifyContent: 'flex-end',
+    overflow: 'hidden',
+    marginBottom: 8,
+  },
+  dayOfWeekBarFill: {
+    width: '100%',
+    borderRadius: 6,
+  },
+  dayOfWeekLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 4,
+  },
+  dayOfWeekAmount: {
+    fontSize: 10,
+    color: Colors.textSecondary,
   },
   section: {
     paddingHorizontal: 24,
