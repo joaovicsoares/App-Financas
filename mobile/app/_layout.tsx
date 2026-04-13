@@ -8,7 +8,6 @@ import { getDB } from '@/services/database';
 import { startAutoSync } from '@/services/sync/syncEngine';
 import { VersionService } from '@/services/versionService';
 import { Alert } from 'react-native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 function RootLayoutNav() {
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -79,10 +78,8 @@ function RootLayoutNav() {
 
 export default function RootLayout() {
   return (
-    <SafeAreaProvider>
-      <AuthProvider>
-        <RootLayoutNav />
-      </AuthProvider>
-    </SafeAreaProvider>
+    <AuthProvider>
+      <RootLayoutNav />
+    </AuthProvider>
   );
 }
